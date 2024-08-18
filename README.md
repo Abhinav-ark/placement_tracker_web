@@ -11,8 +11,9 @@ This is a web application for tracking the placement activities of the students 
 
 | Type | Technologies | Link |
 | --- | --- | --- |
-| Frontend | `NextJS`, `ReactJS`, `NodeJS`, `TailwindCSS` | [GitHub](https://github.com/Ashrockzzz2003/placement_tracker_web) |
-| Backend | `NodeJS`, `ExpressJS`, `MySQL` | [GitHub](https://github.com/Ashrockzzz2003/placement_tracker_server) |
+| Frontend | `NextJS`, `ReactJS`, `NodeJS`, `TailwindCSS` | [GitHub](https://github.com/Abhinav-ark/placement_tracker_web) |
+| Backend | `NodeJS`, `ExpressJS`, `MySQL` | [GitHub](https://github.com/Abhinav-ark/placement_tracker_server) |
+| Operations - CI | `Github Actions`, `Docker` | [GitHub](https://github.com/Abhinav-ark/placement_tracker_cicd)  |
 
 ## Getting Started
 

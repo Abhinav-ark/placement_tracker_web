@@ -6,13 +6,13 @@ import * as FileSaver from "file-saver";
 
 import * as XLSX from "xlsx";
 
-export const ExportCSV = ({ csvData, fileName }) => {
+export const ExportDoc = ({ csvData, fileName }) => {
   const fileType =
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
 
   const fileExtension = ".xlsx";
 
-  const exportToCSV = (csvData, fileName) => {
+  const exportToDoc = (csvData, fileName) => {
     const ws = XLSX.utils.json_to_sheet(csvData);
 
     const wb = { Sheets: { data: ws }, SheetNames: ["data"] };
@@ -26,7 +26,7 @@ export const ExportCSV = ({ csvData, fileName }) => {
 
   return (
     <button 
-        onClick={(e) => exportToCSV(csvData, fileName)}
+        onClick={(e) => exportToDoc(csvData, fileName)}
         className="bg-[#000000] text-[#ffffff] rounded-xl p-2 items-center align-middle flex flex-row hover:bg-[#3b3b3b] ml-2">
         {"Download"}
         <span className="material-icons ml-2">download</span>

@@ -18,7 +18,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import Searchbar from "@/util/SearchBar";
 import { Dialog, Transition } from "@headlessui/react";
 import { Chart } from 'primereact/chart';
-import { ExportCSV } from "@/util/exportCSV";
+import { ExportDoc } from "@/util/exportToDoc";
 
 export default function AllPlacedStudentsScreen() {
     const [allPlacedStudentData, setAllPlacedStudentData] = useState([]);
@@ -651,25 +651,25 @@ export default function AllPlacedStudentsScreen() {
 
     useEffect(() => {
         setAllPlacedStudentDataExport(allPlacedStudentDataUntouchedFiltered.map((student) => ({
-            studentRollNo: student.studentRollNo,
-            studentEmail: student.studentEmail,
-            studentName: student.studentName,
-            studentGender: student.studentGender,
-            studentDept: student.studentDept,
-            studentBatch: student.studentBatch,
-            studentSection: student.studentSection,
-            isHigherStudies: student.isHigherStudies === "0" ? "No" : "Yes",
-            cgpa: student.cgpa,
-            companyName: student.companyName,
-            ctc: student.ctc,
-            jobRole: student.jobRole,
-            jobLocation: student.jobLocation,
-            placementDate: new Date(student.placementDate).toDateString(),
-            isIntern: student.isIntern === "0" ? "No" : "Yes",
-            isPPO: student.isPPO === "0" ? "No" : "Yes",
-            isOnCampus: student.isOnCampus === "0" ? "No" : "Yes",
-            isGirlsDrive: student.isGirlsDrive === "0" ? "No" : "Yes",
-            extraData: student.extraData
+            "Roll No.": student["studentRollNo"],
+            "Email": student["studentEmail"],
+            "Name": student["studentName"],
+            "Gender": student["studentGender"] === "F" ? "Female" : student["studentGender"] === "M" ? "Male" : "Other",
+            "Department": student["studentDept"],
+            "Batch": student["studentBatch"],
+            "Section": student["studentSection"],
+            "CGPA": student["cgpa"],
+            "Company Name": student["companyName"],
+            "CTC": student["ctc"] < 100.0 ? student["ctc"] + " L" : student["ctc"]/100 + " Cr",
+            "Role": student["jobRole"],
+            "Job Location": student["jobLocation"],
+            "Placement Date": new Date(student["placementDate"]).toDateString(),
+            "isHigherStudies": student["isHigherStudies"] === "0" ? "No" : "Yes",
+            "isInternship": student["isIntern"] === "0" ? "No" : "Yes",
+            "isPPO": student["isPPO"] === "0" ? "No" : "Yes",
+            "isOnCampus": student["isOnCampus"] === "0" ? "No" : "Yes",
+            "isGirlsDrive": student["isGirlsDrive"] === "0" ? "No" : "Yes",
+            "Extra Information": student["extraData"]
         })));
     }, [allPlacedStudentDataUntouchedFiltered]);
 
@@ -873,7 +873,7 @@ export default function AllPlacedStudentsScreen() {
                         <div className="block max-w-11/12 ml-auto mr-auto justify-center align-middle">
                             {/* Download Button */}
                             <div className="flex w-full h-10 justify-end">
-                                <ExportCSV csvData={allPlacedStudentDataExport} fileName={fileName} />
+                                <ExportDoc csvData={allPlacedStudentDataExport} fileName={fileName} />
                             </div>
 
                             <table className="w-full ml-auto mr-auto my-4 rounded-2xl backdrop-blur-2xl bg-red-50 bg-opacity-30 text-center text-sm border-black border-separate border-spacing-0 border-solid">

@@ -18,10 +18,14 @@ import { MultiSelect } from 'primereact/multiselect';
 import Searchbar from "@/util/SearchBar";
 import { Dialog, Transition } from "@headlessui/react";
 import { Chart } from 'primereact/chart';
+import { ExportCSV } from "@/util/exportCSV";
 
 export default function AllPlacedStudentsScreen() {
     const [allPlacedStudentData, setAllPlacedStudentData] = useState([]);
     const [allPlacedStudentDataFiltered, setAllPlacedStudentDataFiltered] = useState([]);
+    const [allPlacedStudentDataUntouched,setAllPlacedStudentDataUntouched] = useState([]);
+    const [allPlacedStudentDataUntouchedFiltered,setAllPlacedStudentDataUntouchedFiltered] = useState([]);
+    const [allPlacedStudentDataExport,setAllPlacedStudentDataExport] = useState([]);
     
     const [isLoading, setIsLoading] = useState(true);
     const [userAccess, setUserAccess] = useState("");
@@ -37,6 +41,8 @@ export default function AllPlacedStudentsScreen() {
     const [maxCTC, setMaxCTC] = useState(0);
     const [minCTC, setMinCTC] = useState(0);
     const [avgCTC, setAvgCTC] = useState(0);
+
+    const fileName = "placements";
     
     const basicOptions = {
         maintainAspectRatio: false,
@@ -157,7 +163,8 @@ export default function AllPlacedStudentsScreen() {
             if (res.status === 200) {
                 res.json().then((data) => {
                     const sections = [];
-
+                    setAllPlacedStudentDataUntouched(data["placementData"]);
+                    setAllPlacedStudentDataUntouchedFiltered(data["placementData"]);
                     const groupedData = data["placementData"].reduce((acc, obj) => {
                         const key = obj["studentId"];
                         if (!acc[key]) {
@@ -338,7 +345,9 @@ export default function AllPlacedStudentsScreen() {
 
         setCompanyNames(companyNamesTemp);
         setTotalHires(totalHiresTemp);
+
     }, [allPlacedStudentDataFiltered]);
+
 
     useEffect(() => {
         if (allPlacedStudentData.length && companyList.length) {
@@ -359,6 +368,18 @@ export default function AllPlacedStudentsScreen() {
                     })) && (isGirlsDrive === null || isGirlsDrive === '' || student["placements"].some((placement) => {
                         return placement["isGirlsDrive"] === isGirlsDrive;
                     }))
+                );
+            }));
+            setAllPlacedStudentDataUntouchedFiltered(allPlacedStudentDataUntouched.filter((student) => {
+                return (
+                    ((student["studentRollNo"].toUpperCase().includes(searchText.toUpperCase())) || (student["studentName"].toLowerCase().includes(searchText.toLowerCase()))) && (student["studentGender"] === gender || gender === '') &&
+                    (selectedSections === null || selectedSections.length === 0 || selectedSections.includes(student["studentSection"])) &&
+                    (selectedCompanies === null || selectedCompanies.length === 0 || selectedCompanies.includes(student["companyId"])) &&
+                    (isHigherStudies === null || isHigherStudies === '' || student["isHigherStudies"] === isHigherStudies) &&
+                    (isIntern === null || isIntern === '' || student["isIntern"] === isIntern) &&
+                    (isPPO === null || isPPO === '' || student["isPPO"] === isPPO) && 
+                    (isOnCampus === null || isOnCampus === '' || student["isOnCampus"] === isOnCampus) &&
+                    (isGirlsDrive === null || isGirlsDrive === '' || student["isGirlsDrive"] === isGirlsDrive)
                 );
             }));
         }
@@ -504,7 +525,8 @@ export default function AllPlacedStudentsScreen() {
             if (res.status === 200) {
                 res.json().then((data) => {
                     const sections = [];
-
+                    setAllPlacedStudentDataUntouched(data["placementData"]);
+                    setAllPlacedStudentDataUntouchedFiltered(data["placementData"]);
                     const groupedData = data["placementData"].reduce((acc, obj) => {
                         const key = obj["studentId"];
                         if (!acc[key]) {
@@ -626,6 +648,30 @@ export default function AllPlacedStudentsScreen() {
 
 
     }
+
+    useEffect(() => {
+        setAllPlacedStudentDataExport(allPlacedStudentDataUntouchedFiltered.map((student) => ({
+            studentRollNo: student.studentRollNo,
+            studentEmail: student.studentEmail,
+            studentName: student.studentName,
+            studentGender: student.studentGender,
+            studentDept: student.studentDept,
+            studentBatch: student.studentBatch,
+            studentSection: student.studentSection,
+            isHigherStudies: student.isHigherStudies === "0" ? "No" : "Yes",
+            cgpa: student.cgpa,
+            companyName: student.companyName,
+            ctc: student.ctc,
+            jobRole: student.jobRole,
+            jobLocation: student.jobLocation,
+            placementDate: new Date(student.placementDate).toDateString(),
+            isIntern: student.isIntern === "0" ? "No" : "Yes",
+            isPPO: student.isPPO === "0" ? "No" : "Yes",
+            isOnCampus: student.isOnCampus === "0" ? "No" : "Yes",
+            isGirlsDrive: student.isGirlsDrive === "0" ? "No" : "Yes",
+            extraData: student.extraData
+        })));
+    }, [allPlacedStudentDataUntouchedFiltered]);
 
     return (
         <>
@@ -823,82 +869,87 @@ export default function AllPlacedStudentsScreen() {
                             options={basicOptions} 
                             style={{width: '80%' }}/>
                         </div>
-                        
 
+                        <div className="block max-w-11/12 ml-auto mr-auto justify-center align-middle">
+                            {/* Download Button */}
+                            <div className="flex w-full h-10 justify-end">
+                                <ExportCSV csvData={allPlacedStudentDataExport} fileName={fileName} />
+                            </div>
 
-                        <table className="max-w-11/12 ml-auto mr-auto my-4 rounded-2xl backdrop-blur-2xl bg-red-50 bg-opacity-30 text-center text-sm border-black border-separate border-spacing-0 border-solid">
-                            <thead className="border-0 text-lg font-medium">
-                                <tr className="bg-black text-white bg-opacity-90 backdrop-blur-xl">
-                                    <th className="px-2 py-1 rounded-tl-2xl border-black" rowSpan={2}>Roll Number</th>
-                                    <th className="px-2 py-1 border-black" rowSpan={2}>Student Name</th>
-                                    <th className="px-2 py-1 border-black" rowSpan={2}>Gender</th>
-                                    <th className="px-2 py-1 border-black" rowSpan={2}>Class</th>
-                                    <th className="px-2 py-1 border-black" rowSpan={2}>CGPA</th>
-                                    <th className="px-2 py-1 border-b-black rounded-tr-2xl" rowSpan={1} colSpan={4}>Placements</th>
-                                </tr>
-                                <tr className="bg-black text-white bg-opacity-90">
-                                    <th className="px-2 py-1 border-black">Company</th>
-                                    <th className="px-2 py-1 border-black">CTC</th>
-                                    <th className="px-2 py-1 border-black">Location</th>
-                                    <th className="px-2 py-1 border-black">Quick Facts</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {allPlacedStudentDataFiltered.length === 0 ? (
-                                    <tr>
-                                        <td className="border border-gray-200 rounded-b-2xl px-2 py-8 text-center text-lg" colSpan={10}>No Data Found</td>
+                            <table className="w-full ml-auto mr-auto my-4 rounded-2xl backdrop-blur-2xl bg-red-50 bg-opacity-30 text-center text-sm border-black border-separate border-spacing-0 border-solid">
+                                <thead className="border-0 text-lg font-medium">
+                                    <tr className="bg-black text-white bg-opacity-90 backdrop-blur-xl">
+                                        <th className="px-2 py-1 rounded-tl-2xl border-black" rowSpan={2}>Roll Number</th>
+                                        <th className="px-2 py-1 border-black" rowSpan={2}>Student Name</th>
+                                        <th className="px-2 py-1 border-black" rowSpan={2}>Gender</th>
+                                        <th className="px-2 py-1 border-black" rowSpan={2}>Class</th>
+                                        <th className="px-2 py-1 border-black" rowSpan={2}>CGPA</th>
+                                        <th className="px-2 py-1 border-b-black rounded-tr-2xl" rowSpan={1} colSpan={4}>Placements</th>
                                     </tr>
-                                ) : (
-                                    allPlacedStudentDataFiltered.map((student, index) => {
-                                        return [
-                                            (<tr key={index}>
+                                    <tr className="bg-black text-white bg-opacity-90">
+                                        <th className="px-2 py-1 border-black">Company</th>
+                                        <th className="px-2 py-1 border-black">CTC</th>
+                                        <th className="px-2 py-1 border-black">Location</th>
+                                        <th className="px-2 py-1 border-black">Quick Facts</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {allPlacedStudentDataFiltered.length === 0 ? (
+                                        <tr>
+                                            <td className="border border-gray-200 rounded-b-2xl px-2 py-8 text-center text-lg" colSpan={10}>No Data Found</td>
+                                        </tr>
+                                    ) : (
+                                        allPlacedStudentDataFiltered.map((student, index) => {
+                                            return [
+                                                (<tr key={index}>
 
-                                                <td className={"border border-gray-200 px-2 py-1" + (index === allPlacedStudentDataFiltered.length - 1 ? "border-separate rounded-bl-2xl" : "")} rowSpan={student["placements"].length + 1}>{student["studentRollNo"]}</td>
-                                                <td className="border border-gray-200 px-2 py-1" rowSpan={student["placements"].length + 1}>{student["studentName"]}</td>
-                                                <td className="border border-gray-200 px-2 py-1" rowSpan={student["placements"].length + 1}>{student["studentGender"]}</td>
-                                                <td className="border border-gray-200 px-2 py-1" rowSpan={student["placements"].length + 1}>{student["studentDept"]} {" "} {student["studentSection"]}</td>
-                                                <td className="border border-gray-200 px-2 py-1" rowSpan={student["placements"].length + 1}>{student["cgpa"] ?? "-"}</td>
-                                            </tr>),
-                                            student["placements"].map((placement, pindex) => {
-                                                return (
-                                                    <tr key={pindex}>
-                                                        <td className="border border-gray-200 px-0.5 py-1 text-center">
-                                                            {placement["companyName"]}
-                                                            {placement["jobRole"] !== "-" ? (
-                                                                <p className="text-xs text-gray-500">{placement["jobRole"]}</p>
-                                                            ) : null}
-                                                        </td>
-                                                        <td className="border border-gray-200 px-2 py-1">{placement["ctc"] + " LPA"}</td>
-                                                        <td className="border border-gray-200 px-2 py-1">{placement["jobLocation"] ?? "-"}</td>
-                                                        <td className={"border border-gray-200 px-2 py-1" + (index === allPlacedStudentDataFiltered.length - 1 ? " border-separate rounded-br-2xl" : "")}>
-                                                            <div className="flex flex-wrap">
-                                                                {placement["isIntern"] === "1" ? (
-                                                                    <div className="bg-yellow-100 rounded-xl p-2 m-1 text-[#544a15]">Intern</div>
+                                                    <td className={"border border-gray-200 px-2 py-1" + (index === allPlacedStudentDataFiltered.length - 1 ? "border-separate rounded-bl-2xl" : "")} rowSpan={student["placements"].length + 1}>{student["studentRollNo"]}</td>
+                                                    <td className="border border-gray-200 px-2 py-1" rowSpan={student["placements"].length + 1}>{student["studentName"]}</td>
+                                                    <td className="border border-gray-200 px-2 py-1" rowSpan={student["placements"].length + 1}>{student["studentGender"]}</td>
+                                                    <td className="border border-gray-200 px-2 py-1" rowSpan={student["placements"].length + 1}>{student["studentDept"]} {" "} {student["studentSection"]}</td>
+                                                    <td className="border border-gray-200 px-2 py-1" rowSpan={student["placements"].length + 1}>{student["cgpa"] ?? "-"}</td>
+                                                </tr>),
+                                                student["placements"].map((placement, pindex) => {
+                                                    return (
+                                                        <tr key={pindex}>
+                                                            <td className="border border-gray-200 px-0.5 py-1 text-center">
+                                                                {placement["companyName"]}
+                                                                {placement["jobRole"] !== "-" ? (
+                                                                    <p className="text-xs text-gray-500">{placement["jobRole"]}</p>
                                                                 ) : null}
-                                                                {placement["isPPO"] === "1" ? (
-                                                                    <div className="bg-green-100 rounded-xl p-2 m-1 text-[#21430e]">PPO</div>
-                                                                ) : null}
-                                                                {placement["isOnCampus"] === '1' ? (
-                                                                    <div className="bg-purple-100 rounded-xl p-2 m-1 text-[#1d0e3a]">On Campus</div>
-                                                                ) : (
-                                                                    <div className="bg-red-100 rounded-xl p-2 m-1 text-[#320f0f]">Off Campus</div>
-                                                                )}
-                                                                {placement["isGirlsDrive"] === '1' ? (
-                                                                    <div className="bg-pink-100 rounded-xl p-2 m-1 text-[#461348]">Girls Drive</div>
-                                                                ) : (
-                                                                    null
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        ];
+                                                            </td>
+                                                            <td className="border border-gray-200 px-2 py-1">{placement["ctc"] + " LPA"}</td>
+                                                            <td className="border border-gray-200 px-2 py-1">{placement["jobLocation"] ?? "-"}</td>
+                                                            <td className={"border border-gray-200 px-2 py-1" + (index === allPlacedStudentDataFiltered.length - 1 ? " border-separate rounded-br-2xl" : "")}>
+                                                                <div className="flex flex-wrap">
+                                                                    {placement["isIntern"] === "1" ? (
+                                                                        <div className="bg-yellow-100 rounded-xl p-2 m-1 text-[#544a15]">Intern</div>
+                                                                    ) : null}
+                                                                    {placement["isPPO"] === "1" ? (
+                                                                        <div className="bg-green-100 rounded-xl p-2 m-1 text-[#21430e]">PPO</div>
+                                                                    ) : null}
+                                                                    {placement["isOnCampus"] === '1' ? (
+                                                                        <div className="bg-purple-100 rounded-xl p-2 m-1 text-[#1d0e3a]">On Campus</div>
+                                                                    ) : (
+                                                                        <div className="bg-red-100 rounded-xl p-2 m-1 text-[#320f0f]">Off Campus</div>
+                                                                    )}
+                                                                    {placement["isGirlsDrive"] === '1' ? (
+                                                                        <div className="bg-pink-100 rounded-xl p-2 m-1 text-[#461348]">Girls Drive</div>
+                                                                    ) : (
+                                                                        null
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            ];
 
-                                    })
-                                )}
-                            </tbody>
-                        </table>
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <Transition appear show={isOpen} as={Fragment}>
